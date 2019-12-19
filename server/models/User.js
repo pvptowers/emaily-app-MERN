@@ -3,7 +3,7 @@ const {
     Schema
 } = mongoose;
 
-const userSchema = newSchema({
+const userSchema = new Schema({
     googleId: String
 });
 

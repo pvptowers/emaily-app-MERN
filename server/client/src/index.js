@@ -1,12 +1,20 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+//Data layer control (Redux)
+import React from "react";
+import ReactDom from "react-dom";
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
 
-ReactDOM.render(<App />, document.getElementById('root'));
+//Import components
+import App from "./components/App";
+import reducers from "./reducers";
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+const store = createStore(reducers => [], {}, applyMiddleware());
+
+//Provider tag is a react component that can read from our redux store and update components with the new state
+ReactDom.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+
+  document.querySelector("#root")
+);

@@ -30,7 +30,7 @@ passport.use(
       })
       if (existingUser) {
         //we already have a record with the given profile id
-        done(null, existingUser);
+        return done(null, existingUser);
       } else {
         //If user doesn't exist - create new user 
         const user = await new User({

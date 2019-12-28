@@ -25,6 +25,6 @@ module.exports = app => {
     //req.logout is available from passport
     req.logout();
     //Get back req.user, as they are loggedout it should come back undefined or empty.
-    res.send(req.user);
+    res.redirect("/");
   });
 };

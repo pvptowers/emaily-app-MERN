@@ -1,3 +1,6 @@
+const _ = require("lodash");
+const path = require("path-parser");
+const { URL } = require("url");
 const mongoose = require("mongoose");
 const requireLogin = require("../middlewares/requireLogin");
 const requireCredits = require("../middlewares/requireCredits");
@@ -8,6 +11,47 @@ const Survey = mongoose.model("surveys");
 module.exports = app => {
   app.get("/api/surveys/thanks", (req, res) => {
     res.send("thanks for voting");
+  });
+
+  app.post("/api/surveys/webhooks", (req, res) => {
+    const p = new Path("/api/surveys/:surveyId/:choice");
+
+    //map over list of events
+    _.chain(req.body)
+      .map(({ email, url }) => {
+        //extract path from the URL
+        //pull of survey number and result
+        const match = p.test(new URL(url).pathname);
+        if (match) {
+          return {
+            email,
+            surveyId: match.surveyId,
+            choice: match.choice
+          };
+        }
+      })
+      .compact()
+      .uniqBy("email", "surveyId")
+      .each(({ surveyId, email, choice }) => {
+        Survey.updateOne(
+          {
+            _id: surveyId,
+            recipients: {
+              $elemMatch: {
+                email: email,
+                responded: false
+              }
+            }
+          },
+          {
+            $inc: { [choice]: 1 },
+            $set: { "recipients.$.responded": true }
+          }
+        ).exec();
+      })
+      .value();
+
+    res.send({});
   });
 
   //Check if user is logged in and they have enough credits using middleware
@@ -34,7 +78,7 @@ module.exports = app => {
 
       res.send(user);
     } catch (err) {
-      res.status(422).send(err);
+      console.log(err);
     }
   });
 };

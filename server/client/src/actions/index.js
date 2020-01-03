@@ -16,3 +16,9 @@ export const handleToken = token => async dispatch => {
   //response back from server. what are we going to dispatch? the user, so we can get their number of credits
   dispatch({ type: FETCH_USER, payload: res.data });
 };
+export const submitSurvey = (values, history) => async dispatch => {
+  const res = await axios.post("/api/surveys", values);
+
+  history.push("/surveys");
+  dispatch({ type: FETCH_USER, payload: res.data });
+};

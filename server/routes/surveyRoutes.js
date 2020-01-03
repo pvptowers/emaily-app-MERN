@@ -18,25 +18,23 @@ module.exports = app => {
       title,
       subject,
       body,
-      recipients: recipients.split(",").map(email => ({
-        email: email.trim()
-      })),
+      recipients: recipients.split(",").map(email => ({ email: email.trim() })),
       _user: req.user.id,
-      dateSend: Date.now()
+      dateSent: Date.now()
     });
-    //Great place to send an email, second argument passes in the html to use in the body of the email
+
+    // Great place to send an email!
     const mailer = new Mailer(survey, surveyTemplate(survey));
+
     try {
       await mailer.send();
-      //save survey to database
       await survey.save();
-      //remove credit from user
       req.user.credits -= 1;
       const user = await req.user.save();
 
       res.send(user);
     } catch (err) {
-      res.status(422);
+      res.status(422).send(err);
     }
   });
 };

@@ -1,11 +1,12 @@
 const _ = require("lodash");
-const path = require("path-parser");
+const Path = require("path-parser");
 const { URL } = require("url");
 const mongoose = require("mongoose");
 const requireLogin = require("../middlewares/requireLogin");
 const requireCredits = require("../middlewares/requireCredits");
 const Mailer = require("../services/Mailer");
 const surveyTemplate = require("../services/emailTemplates/surveyTemplate");
+
 const Survey = mongoose.model("surveys");
 
 module.exports = app => {
@@ -13,30 +14,22 @@ module.exports = app => {
     const surveys = await Survey.find({ _user: req.user.id }).select({
       recipients: false
     });
+
     res.send(surveys);
   });
-};
 
-module.exports = app => {
   app.get("/api/surveys/:surveyId/:choice", (req, res) => {
-    res.send("thanks for voting");
+    res.send("Thanks for voting!");
   });
 
   app.post("/api/surveys/webhooks", (req, res) => {
     const p = new Path("/api/surveys/:surveyId/:choice");
 
-    //map over list of events
     _.chain(req.body)
       .map(({ email, url }) => {
-        //extract path from the URL
-        //pull of survey number and result
         const match = p.test(new URL(url).pathname);
         if (match) {
-          return {
-            email,
-            surveyId: match.surveyId,
-            choice: match.choice
-          };
+          return { email, surveyId: match.surveyId, choice: match.choice };
         }
       })
       .compact()
@@ -46,10 +39,7 @@ module.exports = app => {
           {
             _id: surveyId,
             recipients: {
-              $elemMatch: {
-                email: email,
-                responded: false
-              }
+              $elemMatch: { email: email, responded: false }
             }
           },
           {
@@ -64,7 +54,6 @@ module.exports = app => {
     res.send({});
   });
 
-  //Check if user is logged in and they have enough credits using middleware
   app.post("/api/surveys", requireLogin, requireCredits, async (req, res) => {
     const { title, subject, body, recipients } = req.body;
 
@@ -88,7 +77,7 @@ module.exports = app => {
 
       res.send(user);
     } catch (err) {
-      console.log(err);
+      res.status(422).send(err);
     }
   });
 };
